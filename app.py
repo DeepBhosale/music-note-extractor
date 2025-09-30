@@ -96,17 +96,43 @@ except Exception as e:
     show_exception(e)
     st.stop()
 
-# Show first 100 detected notes
+# Show first 100 detected notes (timeline style with wrapping)
 st.subheader("Detected Notes (first 100 frames)")
-st.write(notes[:100])
 
-# Save notes to a text file for download
+display_notes = [n for n in notes[:100] if n is not None]
+
+if display_notes:
+    lines = []
+    for i in range(0, len(display_notes), 20):  # wrap every 20 notes
+        chunk = display_notes[i:i+20]
+        line = " → ".join([f"🎵 {n}" for n in chunk])
+        lines.append(line)
+    timeline_preview = "\n".join(lines)
+    st.markdown(f"```\n{timeline_preview}\n```")
+else:
+    st.write("No notes detected in first 100 frames.")
+
+
+
+# Save notes to a text file for download (timeline style with wrapping)
 try:
     notes_txt_path = "all_notes.txt"
-    with open(notes_txt_path, "w") as f:
-        for note in notes:
-            if note is not None:
-                f.write(note + "\n")
+    display_notes = [n for n in notes if n is not None]
+
+    if display_notes:
+        # Wrap after 20 notes per line
+        lines = []
+        for i in range(0, len(display_notes), 20):
+            chunk = display_notes[i:i+20]
+            line = " → ".join([f"🎵 {n}" for n in chunk])
+            lines.append(line)
+        timeline_text = "\n".join(lines)
+    else:
+        timeline_text = "No notes detected."
+
+    with open(notes_txt_path, "w", encoding="utf-8") as f:
+        f.write(timeline_text)
+
     with open(notes_txt_path, "rb") as f:
         st.download_button("Download all_notes.txt", f, file_name="all_notes.txt", mime="text/plain")
 except Exception as e:
